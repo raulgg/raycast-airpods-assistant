@@ -10,6 +10,7 @@ import {
 } from "./local-storage";
 import { ToastManager } from "./toast-manager";
 import { delay } from "./utils";
+import { isAnyAirpodsConnected } from "./bluetooth";
 
 const COMMAND_EXECUTION_DELAY_MS = 2500;
 
@@ -20,10 +21,7 @@ const COMMAND_EXECUTION_DELAY_MS = 2500;
  * @param preferences User preferences
  * @returns The next mode to switch to, or null if current mode is not in preferences
  */
-function getNextSwitchModeFromCurrent(
-  currentMode: Mode,
-  preferences: Preferences
-): Mode | null {
+function getNextSwitchModeFromCurrent(currentMode: Mode, preferences: Preferences): Mode | null {
   if (currentMode === preferences.modeOne) {
     return preferences.modeTwo;
   } else if (currentMode === preferences.modeTwo) {
@@ -37,9 +35,7 @@ function getNextSwitchModeFromCurrent(
  *
  * @param currentMode The mode that was just set
  */
-async function updateNextSwitchModeFromCurrent(
-  currentMode: Mode
-): Promise<void> {
+async function updateNextSwitchModeFromCurrent(currentMode: Mode): Promise<void> {
   try {
     const preferences = getPreferenceValues<Preferences>();
     const nextMode = getNextSwitchModeFromCurrent(currentMode, preferences);
@@ -59,17 +55,25 @@ async function updateNextSwitchModeFromCurrent(
  * @returns void
  */
 export async function setAirPodsMode(modeToActivate: Mode): Promise<void> {
-  const toast = new ToastManager();
+  const toast = new ToastManager(modeToActivate);
 
   try {
-    const lastCommandExecutedAtTimestamp =
-      await getLastCommandExecutedAtTimestamp();
+    // Early exit if no AirPods are connected
+    const connected = await isAnyAirpodsConnected();
+    if (!connected) {
+      await toast.setToFailure({
+        title: "AirPods not connected",
+        error: new Error("Connect your AirPods to your Mac and try again."),
+      });
+      return;
+    }
 
-    await toast.setToLoading(modeToActivate);
+    const lastCommandExecutedAtTimestamp = await getLastCommandExecutedAtTimestamp();
+
+    await toast.setToLoading();
 
     if (lastCommandExecutedAtTimestamp) {
-      const timeSinceLastCommandExecuted =
-        Date.now() - lastCommandExecutedAtTimestamp;
+      const timeSinceLastCommandExecuted = Date.now() - lastCommandExecutedAtTimestamp;
 
       if (timeSinceLastCommandExecuted < COMMAND_EXECUTION_DELAY_MS) {
         await delay(timeSinceLastCommandExecuted);
@@ -84,12 +88,9 @@ export async function setAirPodsMode(modeToActivate: Mode): Promise<void> {
 
     await updateNextSwitchModeFromCurrent(modeToActivate);
 
-    await toast.setToSuccess(modeToActivate);
+    await toast.setToSuccess();
   } catch (error) {
-    await toast.setToFailure(
-      modeToActivate,
-      error instanceof Error ? error : undefined
-    );
+    await toast.setToFailure({ error: error instanceof Error ? error : undefined });
   }
 }
 
@@ -103,11 +104,8 @@ export async function switchAirPodsMode(): Promise<void> {
     const preferences = getPreferenceValues<Preferences>();
 
     // Get the current switch mode from the saved next mode
-    const currentSwitchMode: Mode =
-      (await getNextSwitchMode()) ?? preferences.modeOne;
-    const nextSwitchMode =
-      getNextSwitchModeFromCurrent(currentSwitchMode, preferences) ??
-      preferences.modeOne;
+    const currentSwitchMode: Mode = (await getNextSwitchMode()) ?? preferences.modeOne;
+    const nextSwitchMode = getNextSwitchModeFromCurrent(currentSwitchMode, preferences) ?? preferences.modeOne;
 
     await setNextSwitchMode(nextSwitchMode);
 

@@ -1,8 +1,8 @@
 {
   "$schema": "https://www.raycast.com/schemas/extension.json",
-  "name": "airpods-assistant",
-  "title": "Airpods Assistant",
-  "description": "A simple assistant for controlling your AirPods listening modes from Raycast. Switch between Noise Cancellation, Adaptive, or Transparency using Siri.",
+  "name": "airpods-tools",
+  "title": "AirPods Tools",
+  "description": "A set of tools for controlling your AirPods listening modes and displaying battery information from Raycast. Switch between Noise Cancellation, Adaptive, or Transparency using Siri, or check the battery levels of your AirPods.",
   "icon": "extension-icon.png",
   "author": "raulg",
   "platforms": [
@@ -124,6 +124,20 @@
         }
       ],
       "disabledByDefault": true
+    },
+    {
+      "name": "battery-status",
+      "title": "Battery Status",
+      "subtitle": "AirPods",
+      "description": "Display the battery levels of your AirPods.",
+      "mode": "view",
+      "keywords": [
+        "airpods",
+        "battery",
+        "charge",
+        "status",
+        "airpods"
+      ]
     }
   ],
   "dependencies": {

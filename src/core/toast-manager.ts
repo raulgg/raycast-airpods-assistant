@@ -8,18 +8,36 @@ import { Mode } from "./types";
  */
 export class ToastManager {
   private toast: Toast | null = null;
+  private mode: Mode;
+
+  /**
+   * Creates a new ToastManager instance.
+   * @param mode The AirPods mode being switched to
+   */
+  public constructor(mode: Mode) {
+    this.mode = mode;
+  }
 
   /**
    * Shows a loading toast with animated style.
    * @param mode The AirPods mode being switched to
    * @returns The ToastManager instance for method chaining
    */
-  async setToLoading(mode: Mode): Promise<ToastManager> {
+  async setToLoading(): Promise<ToastManager> {
+    const style = Toast.Style.Animated;
+    const title = `Setting AirPods to ${MODE_LABELS[this.mode]}...`;
+
     await closeMainWindow();
-    this.toast = await showToast({
-      style: Toast.Style.Animated,
-      title: `Setting AirPods to ${MODE_LABELS[mode]}...`,
-    });
+    if (this.toast) {
+      this.toast.style = style;
+      this.toast.title = title;
+    } else {
+      this.toast = await showToast({
+        style,
+        title,
+      });
+    }
+
     return this;
   }
 
@@ -29,11 +47,20 @@ export class ToastManager {
    * @param message Optional success message
    * @returns The ToastManager instance for method chaining
    */
-  async setToSuccess(mode: Mode): Promise<ToastManager> {
+  async setToSuccess(): Promise<ToastManager> {
+    const style = Toast.Style.Success;
+    const title = `AirPods set to ${MODE_LABELS[this.mode]}`;
+
     if (this.toast) {
-      this.toast.style = Toast.Style.Success;
-      this.toast.title = `AirPods set to ${MODE_LABELS[mode]}`;
+      this.toast.style = style;
+      this.toast.title = title;
+    } else {
+      this.toast = await showToast({
+        style,
+        title,
+      });
     }
+
     return this;
   }
 
@@ -43,14 +70,36 @@ export class ToastManager {
    * @param message Optional failure message
    * @returns The ToastManager instance for method chaining
    */
-  async setToFailure(mode: Mode, error?: Error): Promise<ToastManager> {
+  async setToFailure({ title: _title, error }: { title?: string; error?: Error }): Promise<ToastManager> {
+    const style = Toast.Style.Failure;
+    const title = _title ?? `Failed to set AirPods to ${MODE_LABELS[this.mode]}`;
+    const message = error?.message;
+
     if (this.toast) {
-      this.toast.style = Toast.Style.Failure;
-      this.toast.title = `Failed to set AirPods to ${MODE_LABELS[mode]}`;
-      if (error) {
-        this.toast.message = error.message;
+      this.toast.style = style;
+      this.toast.title = title;
+      if (message) {
+        this.toast.message = message;
       }
+    } else {
+      this.toast = await showToast({
+        style,
+        title,
+        message,
+      });
     }
+
     return this;
+  }
+
+  /**
+   * Closes the toast.
+   * @returns void
+   */
+  async hide(): Promise<void> {
+    if (this.toast) {
+      await this.toast.hide();
+      this.toast = null;
+    }
   }
 }
