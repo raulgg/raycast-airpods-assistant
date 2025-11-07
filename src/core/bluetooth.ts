@@ -9,8 +9,8 @@ export type ConnectedAirpodsData = {
   name: string;
   address: string;
   batteryLevelCase: number | null;
-  batteryLevelLeft: number;
-  batteryLevelRight: number;
+  batteryLevelLeft: number | null;
+  batteryLevelRight: number | null;
 };
 
 /**

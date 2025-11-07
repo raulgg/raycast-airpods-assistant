@@ -1,6 +1,6 @@
 import { Color, Detail, Icon } from "@raycast/api";
 import { useEffect, useState } from "react";
-import { ConnectedAirpodsData, getAvailableAirpodsData } from "./core/bluetooth";
+import { ConnectedAirpodsData, getAvailableAirpodsData, getConnectedAirpodsData } from "./core/bluetooth";
 import { getCachedBatteryData, setCachedBatteryData } from "./core/local-storage";
 
 interface BatteryIconConfig {
@@ -36,6 +36,7 @@ function getBatteryIcon(percentage: number | null): BatteryIconConfig {
 
 export default function ShowBattery() {
   const [airpodsData, setAirpodsData] = useState<ConnectedAirpodsData | null>(null);
+  const [isConnected, setIsConnected] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
@@ -59,6 +60,11 @@ export default function ShowBattery() {
         const airpods = availableAirpodsData[0];
         setAirpodsData(airpods);
         setError(null);
+
+        // Check if AirPods are currently connected
+        const connectedAirpods = await getConnectedAirpodsData();
+        const connected = connectedAirpods.some((connectedAirpod) => connectedAirpod.address === airpods.address);
+        setIsConnected(connected);
 
         // Cache the fresh data
         await setCachedBatteryData(airpods);
@@ -89,11 +95,12 @@ export default function ShowBattery() {
     <Detail
       markdown={markdown}
       isLoading={isLoading}
+      navigationTitle="AirPods Battery Status"
       metadata={
         <Detail.Metadata>
           <Detail.Metadata.Label
             title="Left AirPod"
-            text={`${airpodsData.batteryLevelLeft}%`}
+            text={airpodsData.batteryLevelLeft !== null ? `${airpodsData.batteryLevelLeft}%` : "N/A"}
             icon={{
               source: leftIcon.icon,
               tintColor: leftIcon.tintColor,
@@ -101,7 +108,7 @@ export default function ShowBattery() {
           />
           <Detail.Metadata.Label
             title="Right AirPod"
-            text={`${airpodsData.batteryLevelRight}%`}
+            text={airpodsData.batteryLevelRight !== null ? `${airpodsData.batteryLevelRight}%` : "N/A"}
             icon={{
               source: rightIcon.icon,
               tintColor: rightIcon.tintColor,
@@ -109,13 +116,20 @@ export default function ShowBattery() {
           />
           <Detail.Metadata.Separator />
           <Detail.Metadata.Label
-            title="Charging Case"
+            title="Case"
             text={airpodsData.batteryLevelCase !== null ? `${airpodsData.batteryLevelCase}%` : "N/A"}
             icon={{
               source: caseIcon.icon,
               tintColor: caseIcon.tintColor,
             }}
           />
+          <Detail.Metadata.Separator />
+          <Detail.Metadata.TagList title="Connection">
+            <Detail.Metadata.TagList.Item
+              text={isConnected ? "Connected" : "Not Connected"}
+              color={isConnected ? Color.Green : Color.SecondaryText}
+            />
+          </Detail.Metadata.TagList>
         </Detail.Metadata>
       }
     />

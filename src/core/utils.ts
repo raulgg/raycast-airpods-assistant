@@ -2,8 +2,8 @@ export function delay(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-export function parsePercent(s: string | undefined): number {
-  if (!s) return 0;
+export function parsePercent(s: string | undefined): number | null {
+  if (!s) return null;
   const match = s.match(/(\d{1,3})%/);
   if (match) {
     const value = Number(match[1]);
@@ -11,5 +11,5 @@ export function parsePercent(s: string | undefined): number {
   }
   const num = Number(s);
   if (!Number.isNaN(num)) return Math.max(0, Math.min(100, num));
-  return 0;
+  return null;
 }
