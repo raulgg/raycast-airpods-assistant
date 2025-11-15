@@ -1,22 +1,14 @@
-import { Color, Detail, Icon } from "@raycast/api";
+import { Color, Detail, Icon, List } from "@raycast/api";
 import { useEffect, useState } from "react";
-import { ConnectedAirpodsData, getAvailableAirpodsData, getConnectedAirpodsData } from "./core/bluetooth";
-import { getCachedBatteryData, setCachedBatteryData } from "./core/local-storage";
+import { AirpodsData, getAvailableAirpodsData } from "./core/bluetooth-devices";
 
-interface BatteryIconConfig {
-  icon: Icon;
-  tintColor: Color;
-}
-
-function getBatteryIcon(percentage: number | null): BatteryIconConfig {
+const getBatteryIcon = (percentage: number | null) => {
   if (percentage === null) {
-    return { icon: Icon.QuestionMark, tintColor: Color.SecondaryText };
+    return { source: Icon.QuestionMark, tintColor: Color.SecondaryText };
   }
 
   let icon: Icon;
   let tintColor: Color;
-
-  // Select icon based on battery level
   if (percentage >= 60) {
     icon = Icon.Battery;
     tintColor = Color.Green;
@@ -31,25 +23,91 @@ function getBatteryIcon(percentage: number | null): BatteryIconConfig {
     tintColor = Color.Red;
   }
 
-  return { icon, tintColor };
-}
+  return { source: icon, tintColor };
+};
+
+const formatBatteryLevel = (level: number | null | undefined): string => {
+  return level !== null && level !== undefined ? `${level}%` : "N/A";
+};
+
+const renderBatteryMetadata = (
+  airpods: AirpodsData,
+  MetadataComponent: typeof Detail.Metadata | typeof List.Item.Detail.Metadata,
+) => {
+  const batteryLevel = airpods.batteryLevel;
+  const isSingleBatteryLevel = typeof batteryLevel === "number";
+
+  let singleBatteryLevel: number | undefined;
+  let leftBatteryLevel: number | null | undefined;
+  let rightBatteryLevel: number | null | undefined;
+  let caseBatteryLevel: number | null | undefined;
+
+  if (isSingleBatteryLevel) {
+    singleBatteryLevel = batteryLevel;
+  } else if (batteryLevel && typeof batteryLevel === "object") {
+    leftBatteryLevel = batteryLevel.left;
+    rightBatteryLevel = batteryLevel.right;
+    caseBatteryLevel = batteryLevel.case;
+  }
+
+  const hasLeftBatteryLevel = leftBatteryLevel !== undefined;
+  const hasRightBatteryLevel = rightBatteryLevel !== undefined;
+  const hasCaseBatteryLevel = caseBatteryLevel !== undefined;
+
+  return (
+    <MetadataComponent>
+      {isSingleBatteryLevel && singleBatteryLevel !== undefined ? (
+        <MetadataComponent.Label
+          title="Battery"
+          text={formatBatteryLevel(singleBatteryLevel)}
+          icon={getBatteryIcon(singleBatteryLevel)}
+        />
+      ) : (
+        <>
+          {hasLeftBatteryLevel && (
+            <MetadataComponent.Label
+              title="Left AirPod"
+              text={formatBatteryLevel(leftBatteryLevel)}
+              icon={getBatteryIcon(leftBatteryLevel ?? null)}
+            />
+          )}
+          {hasRightBatteryLevel && (
+            <MetadataComponent.Label
+              title="Right AirPod"
+              text={formatBatteryLevel(rightBatteryLevel)}
+              icon={getBatteryIcon(rightBatteryLevel ?? null)}
+            />
+          )}
+        </>
+      )}
+      {(hasLeftBatteryLevel || hasRightBatteryLevel) && hasCaseBatteryLevel && <MetadataComponent.Separator />}
+      {hasCaseBatteryLevel && (
+        <MetadataComponent.Label
+          title="Case"
+          text={formatBatteryLevel(caseBatteryLevel)}
+          icon={getBatteryIcon(caseBatteryLevel ?? null)}
+        />
+      )}
+      <MetadataComponent.Separator />
+      <MetadataComponent.TagList title="Connection">
+        <MetadataComponent.TagList.Item
+          text={airpods.isConnected ? "Connected" : "Not Connected"}
+          color={airpods.isConnected ? Color.Green : Color.SecondaryText}
+        />
+      </MetadataComponent.TagList>
+    </MetadataComponent>
+  );
+};
 
 export default function ShowBattery() {
-  const [airpodsData, setAirpodsData] = useState<ConnectedAirpodsData | null>(null);
-  const [isConnected, setIsConnected] = useState<boolean>(false);
+  const [airpodsData, setAirpodsData] = useState<AirpodsData[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
   useEffect(() => {
     (async () => {
-      // Load cached data first to avoid layout shift
-      const cached = await getCachedBatteryData();
-      if (cached) {
-        setAirpodsData(cached);
-      }
-
-      // Fetch fresh data
       try {
+        // Fetch available AirPods (already includes isConnected property)
         const availableAirpodsData = await getAvailableAirpodsData();
         if (!availableAirpodsData.length) {
           setError("No AirPods found");
@@ -57,17 +115,14 @@ export default function ShowBattery() {
           return;
         }
 
-        const airpods = availableAirpodsData[0];
-        setAirpodsData(airpods);
+        // Sort: connected first (preserving original order), then not-connected
+        const sortedAirpods = availableAirpodsData.sort((a, b) => {
+          if (a.isConnected === b.isConnected) return 0;
+          return a.isConnected ? -1 : 1;
+        });
+
+        setAirpodsData(sortedAirpods);
         setError(null);
-
-        // Check if AirPods are currently connected
-        const connectedAirpods = await getConnectedAirpodsData();
-        const connected = connectedAirpods.some((connectedAirpod) => connectedAirpod.address === airpods.address);
-        setIsConnected(connected);
-
-        // Cache the fresh data
-        await setCachedBatteryData(airpods);
       } catch (e) {
         const msg = e instanceof Error ? e.message : String(e);
         setError(msg);
@@ -81,57 +136,34 @@ export default function ShowBattery() {
     return <Detail markdown={`# AirPods Battery\n\n⚠️ ${error}`} isLoading={false} />;
   }
 
-  if (!airpodsData) {
-    return <Detail markdown="" isLoading={isLoading} />;
+  if (airpodsData.length === 1) {
+    const airpods = airpodsData[0];
+    const markdown = `# ${airpods.name}\n\n✨ Your AirPods battery status`;
+
+    return (
+      <Detail
+        markdown={markdown}
+        isLoading={isLoading}
+        navigationTitle="AirPods Battery Status"
+        metadata={renderBatteryMetadata(airpods, Detail.Metadata)}
+      />
+    );
   }
 
-  const leftIcon = getBatteryIcon(airpodsData.batteryLevelLeft);
-  const rightIcon = getBatteryIcon(airpodsData.batteryLevelRight);
-  const caseIcon = getBatteryIcon(airpodsData.batteryLevelCase);
-
-  const markdown = `# ${airpodsData.name}\n\n✨ Your AirPods battery status`;
-
   return (
-    <Detail
-      markdown={markdown}
-      isLoading={isLoading}
-      navigationTitle="AirPods Battery Status"
-      metadata={
-        <Detail.Metadata>
-          <Detail.Metadata.Label
-            title="Left AirPod"
-            text={airpodsData.batteryLevelLeft !== null ? `${airpodsData.batteryLevelLeft}%` : "N/A"}
-            icon={{
-              source: leftIcon.icon,
-              tintColor: leftIcon.tintColor,
-            }}
-          />
-          <Detail.Metadata.Label
-            title="Right AirPod"
-            text={airpodsData.batteryLevelRight !== null ? `${airpodsData.batteryLevelRight}%` : "N/A"}
-            icon={{
-              source: rightIcon.icon,
-              tintColor: rightIcon.tintColor,
-            }}
-          />
-          <Detail.Metadata.Separator />
-          <Detail.Metadata.Label
-            title="Case"
-            text={airpodsData.batteryLevelCase !== null ? `${airpodsData.batteryLevelCase}%` : "N/A"}
-            icon={{
-              source: caseIcon.icon,
-              tintColor: caseIcon.tintColor,
-            }}
-          />
-          <Detail.Metadata.Separator />
-          <Detail.Metadata.TagList title="Connection">
-            <Detail.Metadata.TagList.Item
-              text={isConnected ? "Connected" : "Not Connected"}
-              color={isConnected ? Color.Green : Color.SecondaryText}
-            />
-          </Detail.Metadata.TagList>
-        </Detail.Metadata>
-      }
-    />
+    <List isLoading={isLoading} isShowingDetail navigationTitle="AirPods Battery Status">
+      {airpodsData.map((airpods) => (
+        <List.Item
+          key={airpods.address}
+          title={airpods.name}
+          subtitle={airpods.isConnected ? "Connected" : "Not Connected"}
+          icon={{
+            source: airpods.type === "over-ear" ? Icon.Headphones : Icon.Airpods,
+            tintColor: airpods.isConnected ? Color.Green : Color.SecondaryText,
+          }}
+          detail={<List.Item.Detail metadata={renderBatteryMetadata(airpods, List.Item.Detail.Metadata)} />}
+        />
+      ))}
+    </List>
   );
 }

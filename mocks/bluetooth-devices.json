@@ -1,0 +1,120 @@
+{
+  "SPBluetoothDataType": [
+    {
+      "controller_properties": {
+        "controller_address": "00:00:00:00:00:00",
+        "controller_chipset": "BCM_4378",
+        "controller_discoverable": "attrib_off",
+        "controller_firmwareVersion": "20.0.0.0",
+        "controller_productID": "0x0000",
+        "controller_state": "attrib_on",
+        "controller_supportedServices": "0x000000",
+        "controller_transport": "PCIe",
+        "controller_vendorID": "0x004C (Apple)"
+      },
+      "device_connected": [
+        {
+          "AirPods Pro (2nd generation)": {
+            "device_address": "AA:BB:CC:DD:EE:01",
+            "device_batteryLevelCase": "85%",
+            "device_batteryLevelLeft": "92%",
+            "device_batteryLevelRight": "90%",
+            "device_caseVersion": "6A326",
+            "device_firmwareVersion": "6A326",
+            "device_minorType": "Headphones",
+            "device_productID": "0x2024",
+            "device_rssi": "-42",
+            "device_serialNumber": "HXPQR12ABC",
+            "device_serialNumberLeft": "GMPHLG0H73M0001ABC",
+            "device_serialNumberRight": "GMPHLG0H73M0002ABC",
+            "device_services": "0x980019 < HFP AVRCP A2DP AACP GATT ACL >",
+            "device_vendorID": "0x004C"
+          }
+        },
+        {
+          "AirPods Max": {
+            "device_address": "AA:BB:CC:DD:EE:02",
+            "device_batteryLevel": "78%",
+            "device_firmwareVersion": "6A321",
+            "device_minorType": "Headphones",
+            "device_productID": "0x200A",
+            "device_rssi": "-38",
+            "device_serialNumber": "XYZMAX00001",
+            "device_services": "0x980019 < HFP AVRCP A2DP AACP GATT ACL >",
+            "device_vendorID": "0x004C"
+          }
+        }
+      ],
+      "device_not_connected": [
+        {
+          "AirPods (3rd generation)": {
+            "device_address": "34:0E:22:19:88:01",
+            "device_batteryLevelLeft": "55%",
+            "device_batteryLevelRight": "54%",
+            "device_caseVersion": "4C165",
+            "device_firmwareVersion": "4C165",
+            "device_minorType": "Headphones",
+            "device_productID": "0x2013",
+            "device_rssi": "-65",
+            "device_serialNumber": "AP3GEN00001",
+            "device_serialNumberLeft": "GMPAP30H73M0001GEN",
+            "device_serialNumberRight": "GMPAP30H73M0002GEN",
+            "device_vendorID": "0x004C"
+          }
+        },
+        {
+          "AirPods Pro": {
+            "device_address": "34:0E:22:19:88:02",
+            "device_batteryLevelLeft": "65%",
+            "device_batteryLevelRight": "63%",
+            "device_caseVersion": "4E71",
+            "device_firmwareVersion": "4E71",
+            "device_minorType": "Headphones",
+            "device_productID": "0x200E",
+            "device_rssi": "-58",
+            "device_serialNumber": "PRO1GEN0001",
+            "device_serialNumberLeft": "GMPHLG0H73M0001PR1",
+            "device_serialNumberRight": "GMPHLG0H73M0002PR1",
+            "device_vendorID": "0x004C"
+          }
+        },
+        {
+          "AirPods 4 with Active Noise Cancellation": {
+            "device_address": "34:0E:22:19:88:03",
+            "device_batteryLevelCase": "15%",
+            "device_batteryLevelLeft": "18%",
+            "device_batteryLevelRight": "17%",
+            "device_caseVersion": "1A123",
+            "device_firmwareVersion": "1A123",
+            "device_minorType": "Headphones",
+            "device_productID": "0x201B",
+            "device_rssi": "-70",
+            "device_serialNumber": "AP4ANC00001",
+            "device_serialNumberLeft": "GMPAP40H73M0001ANC",
+            "device_serialNumberRight": "GMPAP40H73M0002ANC",
+            "device_vendorID": "0x004C"
+          }
+        },
+        {
+          "AirPods (2nd generation)": {
+            "device_address": "34:0E:22:19:88:04",
+            "device_caseVersion": "2D15",
+            "device_firmwareVersion": "2D15",
+            "device_minorType": "Headphones",
+            "device_productID": "0x200F",
+            "device_serialNumber": "AP2GEN00001",
+            "device_vendorID": "0x004C"
+          }
+        },
+        {
+          "Magic Keyboard": {
+            "device_address": "AA:BB:CC:DD:EE:20",
+            "device_minorType": "Keyboard",
+            "device_productID": "0x0267",
+            "device_vendorID": "0x004C"
+          }
+        }
+      ]
+    }
+  ]
+}

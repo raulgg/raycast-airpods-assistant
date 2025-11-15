@@ -10,7 +10,7 @@ import {
 } from "./local-storage";
 import { ToastManager } from "./toast-manager";
 import { delay } from "./utils";
-import { isAnyAirpodsConnected } from "./bluetooth";
+import { isAnyAirpodsConnected } from "./bluetooth-devices";
 
 const COMMAND_EXECUTION_DELAY_MS = 2500;
 
