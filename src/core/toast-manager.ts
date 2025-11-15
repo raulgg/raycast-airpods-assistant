@@ -44,12 +44,11 @@ export class ToastManager {
   /**
    * Updates the toast to show success state.
    * @param title The success title
-   * @param message Optional success message
    * @returns The ToastManager instance for method chaining
    */
-  async setToSuccess(): Promise<ToastManager> {
+  async setToSuccess({ title: _title }: { title?: string } = {}): Promise<ToastManager> {
     const style = Toast.Style.Success;
-    const title = `AirPods set to ${MODE_LABELS[this.mode]}`;
+    const title = _title ?? `AirPods set to ${MODE_LABELS[this.mode]}`;
 
     if (this.toast) {
       this.toast.style = style;
@@ -67,10 +66,9 @@ export class ToastManager {
   /**
    * Updates the toast to show failure state.
    * @param title The failure title
-   * @param message Optional failure message
    * @returns The ToastManager instance for method chaining
    */
-  async setToFailure({ title: _title, error }: { title?: string; error?: Error }): Promise<ToastManager> {
+  async setToFailure({ title: _title, error }: { title?: string; error?: Error } = {}): Promise<ToastManager> {
     const style = Toast.Style.Failure;
     const title = _title ?? `Failed to set AirPods to ${MODE_LABELS[this.mode]}`;
     const message = error?.message;

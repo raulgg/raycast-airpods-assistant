@@ -1,7 +1,6 @@
-import { environment } from "@raycast/api";
 import { runAppleScript } from "@raycast/utils";
 import { RawBluetoothDeviceData } from "./types";
-import { delay, parsePercent } from "./utils";
+import { delay, parsePercent, shouldUseMockData } from "./utils";
 import mockDevicesData from "../../mocks/bluetooth-devices.json";
 
 type HeadphoneType = "over-ear" | "in-ear";
@@ -26,13 +25,13 @@ const HEADPHONES_MINOR_TYPE = "Headphones";
 
 /**
  * Fetches all Bluetooth device data from the system using system_profiler.
- * In development mode, automatically loads data from mocks/devices.json instead.
+ *
  * @returns A promise that resolves to an array of Bluetooth device records
  * @internal
  */
 async function getdBluetoothDevicesData(): Promise<Array<Record<string, RawBluetoothDeviceData[]>>> {
-  if (environment.isDevelopment) {
-    console.log("🧪 Development mode: Using mocked Bluetooth data");
+  if (shouldUseMockData()) {
+    console.log("🧪 Development mode: Using mocked Bluetooth data (USE_MOCK_DATA is set)");
     await delay(1000);
     return mockDevicesData.SPBluetoothDataType as unknown as Array<Record<string, RawBluetoothDeviceData[]>>;
   }

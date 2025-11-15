@@ -9,7 +9,7 @@ import {
   setNextSwitchMode,
 } from "./local-storage";
 import { ToastManager } from "./toast-manager";
-import { delay } from "./utils";
+import { delay, shouldUseMockData } from "./utils";
 import { isAnyAirpodsConnected } from "./bluetooth-devices";
 
 const COMMAND_EXECUTION_DELAY_MS = 2500;
@@ -88,6 +88,10 @@ export async function setAirPodsMode(modeToActivate: Mode): Promise<void> {
 
     await updateNextSwitchModeFromCurrent(modeToActivate);
 
+    if (shouldUseMockData()) {
+      await toast.setToSuccess({ title: `Mocked: AirPods mode set to '${modeToActivate}'` });
+      return;
+    }
     await toast.setToSuccess();
   } catch (error) {
     await toast.setToFailure({ error: error instanceof Error ? error : undefined });
