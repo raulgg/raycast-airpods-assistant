@@ -30,7 +30,6 @@ export async function setAirPodsModeWithSiri(mode: Mode): Promise<void> {
   }
 
   try {
-    await pressEscapeKey();
     await openSiri();
     // Stabilization delay after Siri opened
     await delay(100);
