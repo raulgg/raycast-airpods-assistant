@@ -9,7 +9,7 @@ import {
   setNextSwitchMode,
 } from "./local-storage";
 import { ToastManager } from "./toast-manager";
-import { delay, shouldUseMockData } from "./utils";
+import { delay, shouldUseMockData, waitUntilAllModifierKeysReleased } from "./utils";
 import { isAnyAirpodsConnected } from "./bluetooth-devices";
 
 const COMMAND_EXECUTION_DELAY_MS = 2500;
@@ -80,9 +80,15 @@ export async function setAirPodsMode(modeToActivate: Mode): Promise<void> {
       }
     }
 
-    // Delay to ensure keys are not pressed anymore when triggered from keyboard shortcut preventing undesired outputs
-    // TODO: add checks to delay execution of command until no modifier keys are hold
-    await delay(300);
+    // Wait until all modifier keys are released to prevent interference from pressed mod keys when typing the prompt to Siri
+    const areAllModifierKeysReleased = await waitUntilAllModifierKeysReleased();
+    if (!areAllModifierKeysReleased) {
+      await toast.setToFailure({
+        titleSuffix: "Modifier keys are still pressed",
+        error: new Error("Modifier keys are still pressed; cannot proceed to submit the command to Siri."),
+      });
+      return;
+    }
     await setAirPodsModeWithSiri(modeToActivate);
     await setLastCommandExecutedAtTimestamp(Date.now());
 
@@ -115,7 +121,6 @@ export async function switchAirPodsMode(): Promise<void> {
 
     await setAirPodsMode(currentSwitchMode);
   } catch (error) {
-    console.error(error);
     await showFailureToast(error, {
       title: "Failed to set AirPods mode",
     });
