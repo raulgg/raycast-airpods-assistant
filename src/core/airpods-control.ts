@@ -62,7 +62,7 @@ export async function setAirPodsMode(modeToActivate: Mode): Promise<void> {
     const connected = await isAnyAirpodsConnected();
     if (!connected) {
       await toast.setToFailure({
-        title: "AirPods not connected",
+        titleOverride: "AirPods not connected",
         error: new Error("Connect your AirPods to your Mac and try again."),
       });
       return;
@@ -89,7 +89,7 @@ export async function setAirPodsMode(modeToActivate: Mode): Promise<void> {
     await updateNextSwitchModeFromCurrent(modeToActivate);
 
     if (shouldUseMockData()) {
-      await toast.setToSuccess({ title: `Mocked: AirPods mode set to '${modeToActivate}'` });
+      await toast.setToSuccess({ titleOverride: `Mocked: AirPods mode set to '${modeToActivate}'` });
       return;
     }
     await toast.setToSuccess();
