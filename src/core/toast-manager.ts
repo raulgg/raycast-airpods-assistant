@@ -1,6 +1,6 @@
 import { showToast, Toast, closeMainWindow } from "@raycast/api";
 import { MODE_LABELS } from "./consts";
-import type { Mode } from "./types";
+import type { ListeningModes } from "./types";
 
 /**
  * ToastManager provides a class-based approach to manage toast notifications.
@@ -8,13 +8,13 @@ import type { Mode } from "./types";
  */
 export class ToastManager {
   private toast: Toast | null = null;
-  private mode: Mode;
+  private mode: ListeningModes;
 
   /**
    * Creates a new ToastManager instance.
    * @param mode The AirPods mode being switched to
    */
-  public constructor(mode: Mode) {
+  public constructor(mode: ListeningModes) {
     this.mode = mode;
   }
 

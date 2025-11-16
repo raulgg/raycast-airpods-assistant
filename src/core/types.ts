@@ -1,8 +1,8 @@
-export type Mode = "anc" | "transparency" | "adaptive";
+export type ListeningModes = "anc" | "transparency" | "adaptive";
 
 export interface ExtensionPreferences {
-  modeOne: Mode;
-  modeTwo: Mode;
+  modeOne: ListeningModes;
+  modeTwo: ListeningModes;
 }
 
 export type RawBluetoothDeviceData = Record<string, Record<string, string>>;

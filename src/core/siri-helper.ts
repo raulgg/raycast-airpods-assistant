@@ -2,7 +2,7 @@ import { open, getFrontmostApplication } from "@raycast/api";
 import { runAppleScript } from "@raycast/utils";
 import { SIRI_PROMPTS } from "./consts";
 import { delay } from "./utils";
-import type { Mode } from "./types";
+import type { ListeningModes } from "./types";
 
 const pressEscapeKey = async () => {
   return await runAppleScript(`
@@ -20,7 +20,7 @@ const openSiri = async () => {
  * Invokes Siri and types a prompt to execute a command
  * @param prompt The text prompt to send to Siri
  */
-export async function setAirPodsModeWithSiri(mode: Mode): Promise<void> {
+export async function setAirPodsModeWithSiri(mode: ListeningModes): Promise<void> {
   const siriPrompt = SIRI_PROMPTS[mode];
 
   const previousApp = await getFrontmostApplication();

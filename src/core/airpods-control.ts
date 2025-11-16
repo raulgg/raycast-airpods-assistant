@@ -10,7 +10,7 @@ import {
 import { setAirPodsModeWithSiri } from "./siri-helper";
 import { ToastManager } from "./toast-manager";
 import { delay, shouldUseMockData, waitUntilAllModifierKeysReleased } from "./utils";
-import type { Mode, ExtensionPreferences } from "./types";
+import type { ListeningModes, ExtensionPreferences } from "./types";
 
 const COMMAND_EXECUTION_DELAY_MS = 2500;
 
@@ -21,7 +21,10 @@ const COMMAND_EXECUTION_DELAY_MS = 2500;
  * @param preferences User preferences
  * @returns The next mode to switch to, or null if current mode is not in preferences
  */
-function getNextSwitchModeFromCurrent(currentMode: Mode, preferences: ExtensionPreferences): Mode | null {
+function getNextSwitchModeFromCurrent(
+  currentMode: ListeningModes,
+  preferences: ExtensionPreferences,
+): ListeningModes | null {
   if (currentMode === preferences.modeOne) {
     return preferences.modeTwo;
   } else if (currentMode === preferences.modeTwo) {
@@ -35,7 +38,7 @@ function getNextSwitchModeFromCurrent(currentMode: Mode, preferences: ExtensionP
  *
  * @param currentMode The mode that was just set
  */
-async function updateNextSwitchModeFromCurrent(currentMode: Mode): Promise<void> {
+async function updateNextSwitchModeFromCurrent(currentMode: ListeningModes): Promise<void> {
   try {
     const preferences = getPreferenceValues<ExtensionPreferences>();
     const nextMode = getNextSwitchModeFromCurrent(currentMode, preferences);
@@ -54,7 +57,7 @@ async function updateNextSwitchModeFromCurrent(currentMode: Mode): Promise<void>
  * @param modeToActivate The mode to activate
  * @returns void
  */
-export async function setAirPodsMode(modeToActivate: Mode): Promise<void> {
+export async function setAirPodsMode(modeToActivate: ListeningModes): Promise<void> {
   const toast = new ToastManager(modeToActivate);
 
   try {
@@ -114,7 +117,7 @@ export async function switchAirPodsMode(): Promise<void> {
     const preferences = getPreferenceValues<ExtensionPreferences>();
 
     // Get the current switch mode from the saved next mode
-    const currentSwitchMode: Mode = (await getNextSwitchMode()) ?? preferences.modeOne;
+    const currentSwitchMode: ListeningModes = (await getNextSwitchMode()) ?? preferences.modeOne;
     const nextSwitchMode = getNextSwitchModeFromCurrent(currentSwitchMode, preferences) ?? preferences.modeOne;
 
     await setNextSwitchMode(nextSwitchMode);
