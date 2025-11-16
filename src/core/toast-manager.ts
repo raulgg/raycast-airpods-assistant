@@ -1,6 +1,6 @@
 import { showToast, Toast, closeMainWindow } from "@raycast/api";
 import { MODE_LABELS } from "./consts";
-import { Mode } from "./types";
+import type { Mode } from "./types";
 
 /**
  * ToastManager provides a class-based approach to manage toast notifications.

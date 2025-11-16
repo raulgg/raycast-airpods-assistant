@@ -1,16 +1,16 @@
 import { getPreferenceValues } from "@raycast/api";
 import { showFailureToast } from "@raycast/utils";
-import { Mode, ExtensionPreferences } from "./types";
-import { setAirPodsModeWithSiri } from "./siri-helper";
+import { isAnyAirpodsConnected } from "./bluetooth-devices";
 import {
   getLastCommandExecutedAtTimestamp,
   getNextSwitchMode,
   setLastCommandExecutedAtTimestamp,
   setNextSwitchMode,
 } from "./local-storage";
+import { setAirPodsModeWithSiri } from "./siri-helper";
 import { ToastManager } from "./toast-manager";
 import { delay, shouldUseMockData, waitUntilAllModifierKeysReleased } from "./utils";
-import { isAnyAirpodsConnected } from "./bluetooth-devices";
+import type { Mode, ExtensionPreferences } from "./types";
 
 const COMMAND_EXECUTION_DELAY_MS = 2500;
 

@@ -1,8 +1,8 @@
-import { environment } from "@raycast/api";
-import { parse as dotenvParse } from "dotenv";
+import { execSync } from "child_process";
 import { existsSync, readFileSync } from "fs";
 import { join } from "path";
-import { execSync } from "child_process";
+import { environment } from "@raycast/api";
+import { parse as dotenvParse } from "dotenv";
 
 let envCache: Record<string, string> | null = null;
 

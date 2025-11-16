@@ -1,7 +1,7 @@
 import { runAppleScript } from "@raycast/utils";
-import { RawBluetoothDeviceData } from "./types";
-import { delay, parsePercent, shouldUseMockData } from "./utils";
 import mockDevicesData from "../../mocks/bluetooth-devices.json";
+import { delay, parsePercent, shouldUseMockData } from "./utils";
+import type { RawBluetoothDeviceData } from "./types";
 
 type HeadphoneType = "over-ear" | "in-ear";
 

@@ -1,6 +1,6 @@
 import { Color, Detail, Icon, List } from "@raycast/api";
 import { useEffect, useState } from "react";
-import { AirpodsData, getAvailableAirpodsData } from "./core/bluetooth-devices";
+import { getAvailableAirpodsData, type AirpodsData } from "./core/bluetooth-devices";
 
 const getBatteryIcon = (percentage: number | null) => {
   if (percentage === null) {

@@ -1,8 +1,8 @@
 import { open, getFrontmostApplication } from "@raycast/api";
 import { runAppleScript } from "@raycast/utils";
 import { SIRI_PROMPTS } from "./consts";
-import { Mode } from "./types";
 import { delay } from "./utils";
+import type { Mode } from "./types";
 
 const pressEscapeKey = async () => {
   return await runAppleScript(`

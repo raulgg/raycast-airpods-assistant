@@ -1,5 +1,5 @@
 import { LocalStorage } from "@raycast/api";
-import { Mode } from "./types";
+import type { Mode } from "./types";
 
 const NEXT_SWITCH_MODE_KEY = "nextSwitchMode";
 const LAST_COMMAND_EXECUTED_AT_KEY = "lastCommandExecutedAt";
