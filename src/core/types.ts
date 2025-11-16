@@ -1,6 +1,6 @@
 export type Mode = "anc" | "transparency" | "adaptive";
 
-export interface Preferences {
+export interface ExtensionPreferences {
   modeOne: Mode;
   modeTwo: Mode;
 }

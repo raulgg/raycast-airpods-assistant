@@ -1,6 +1,6 @@
 import { getPreferenceValues } from "@raycast/api";
 import { showFailureToast } from "@raycast/utils";
-import { Mode, Preferences } from "./types";
+import { Mode, ExtensionPreferences } from "./types";
 import { setAirPodsModeWithSiri } from "./siri-helper";
 import {
   getLastCommandExecutedAtTimestamp,
@@ -21,7 +21,7 @@ const COMMAND_EXECUTION_DELAY_MS = 2500;
  * @param preferences User preferences
  * @returns The next mode to switch to, or null if current mode is not in preferences
  */
-function getNextSwitchModeFromCurrent(currentMode: Mode, preferences: Preferences): Mode | null {
+function getNextSwitchModeFromCurrent(currentMode: Mode, preferences: ExtensionPreferences): Mode | null {
   if (currentMode === preferences.modeOne) {
     return preferences.modeTwo;
   } else if (currentMode === preferences.modeTwo) {
@@ -37,7 +37,7 @@ function getNextSwitchModeFromCurrent(currentMode: Mode, preferences: Preference
  */
 async function updateNextSwitchModeFromCurrent(currentMode: Mode): Promise<void> {
   try {
-    const preferences = getPreferenceValues<Preferences>();
+    const preferences = getPreferenceValues<ExtensionPreferences>();
     const nextMode = getNextSwitchModeFromCurrent(currentMode, preferences);
     if (nextMode !== null) {
       await setNextSwitchMode(nextMode);
@@ -111,7 +111,7 @@ export async function setAirPodsMode(modeToActivate: Mode): Promise<void> {
  */
 export async function switchAirPodsMode(): Promise<void> {
   try {
-    const preferences = getPreferenceValues<Preferences>();
+    const preferences = getPreferenceValues<ExtensionPreferences>();
 
     // Get the current switch mode from the saved next mode
     const currentSwitchMode: Mode = (await getNextSwitchMode()) ?? preferences.modeOne;
