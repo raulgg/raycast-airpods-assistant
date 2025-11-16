@@ -2,6 +2,9 @@ import { environment } from "@raycast/api";
 import { parse as dotenvParse } from "dotenv";
 import { existsSync, readFileSync } from "fs";
 import { join } from "path";
+import { execSync } from "child_process";
+
+let envCache: Record<string, string> | null = null;
 
 /**
  * Delays execution for the specified number of milliseconds.
@@ -33,7 +36,40 @@ export function parsePercent(s: string | undefined): number | null {
   return null;
 }
 
-let envCache: Record<string, string> | null = null;
+/**
+ * Waits until all modifier keys are released by invoking a bundled Swift script
+ * that handles polling at specified intervals until the timeout is reached.
+ *
+ * @param timeoutMs - Maximum time to wait in milliseconds (default: 2000ms)
+ * @param pollingIntervalMs - Interval between checks in milliseconds (default: 50ms)
+ * @returns true if all modifier keys are released, false if timeout is reached
+ * @throws error when an unexpected error occurs while executing the Swift script
+ */
+export async function waitUntilAllModifierKeysReleased(
+  timeoutMs: number = 2000,
+  pollingIntervalMs: number = 50,
+): Promise<boolean> {
+  try {
+    // Execute the Swift script with the polling logic to check if all modifier keys are released
+    const swiftScriptPath = join(environment.assetsPath, "check-modifier-keys.swift");
+    execSync(`swift "${swiftScriptPath}" ${timeoutMs} ${pollingIntervalMs}`, {
+      encoding: "utf-8",
+      stdio: "pipe",
+    });
+
+    return true;
+  } catch (error) {
+    const execError = error as { status?: number; code?: string | number };
+    // Exit codes from Swift script:
+    // 0 = success (keys released)
+    // 1 = timeout reached
+    // 2 = unexpected error in Swift script
+    if (execError.status === 1) {
+      return false;
+    }
+    throw error;
+  }
+}
 
 /**
  * Determines if mock data should be used.
@@ -59,7 +95,7 @@ export function shouldUseMockData(): boolean {
       if (existsSync(envPath)) {
         const envContent = readFileSync(envPath, "utf-8");
         envCache = dotenvParse(envContent);
-        console.log("envCache 2", envCache);
+      }
     } catch (error) {
       console.error("Failed to load .env.local file:", error);
     }
