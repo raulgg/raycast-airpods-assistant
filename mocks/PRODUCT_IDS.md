@@ -84,7 +84,7 @@ When AirPods are connected to the Mac, the following fields are typically presen
 
 **Note:**
 
-- **AirPods Max** report a single `device_batteryLevel` for the entire device (not separate left/right). They don't have a charging case.
+- **AirPods Max** report a single `device_batteryLevelMain` for the entire device (not separate left/right). They don't have a charging case.
 - **Regular AirPods/Pro** report `device_batteryLevelLeft` and `device_batteryLevelRight` separately, plus `device_batteryLevelCase` when case is open/nearby.
 
 ### Not Connected but Nearby

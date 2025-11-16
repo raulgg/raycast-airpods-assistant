@@ -1,24 +1,7 @@
 import { runAppleScript } from "@raycast/utils";
 import mockDevicesData from "../../mocks/bluetooth-devices.json";
 import { delay, parsePercent, shouldUseMockData } from "./utils";
-import type { RawBluetoothDeviceData } from "./types";
-
-type HeadphoneType = "over-ear" | "in-ear";
-
-export type AirpodsData = {
-  name: string;
-  address: string;
-  type: HeadphoneType;
-  batteryLevel:
-    | {
-        left: number | null;
-        right: number | null;
-        case: number | null;
-      }
-    | number
-    | null;
-  isConnected: boolean;
-};
+import type { AirpodsData, BluetoothDeviceData, SPBluetoothData, ValidBluetoothDeviceData } from "./types";
 
 const APPLE_VENDOR_ID = "0x004C";
 const HEADPHONES_MINOR_TYPE = "Headphones";
@@ -29,11 +12,11 @@ const HEADPHONES_MINOR_TYPE = "Headphones";
  * @returns A promise that resolves to an array of Bluetooth device records
  * @internal
  */
-async function getdBluetoothDevicesData(): Promise<Array<Record<string, RawBluetoothDeviceData[]>>> {
+async function getdBluetoothDevicesData(): Promise<SPBluetoothData> {
   if (shouldUseMockData()) {
-    console.log("🧪 Development mode: Using mocked Bluetooth data (USE_MOCK_DATA is set)");
+    console.log("🧪 Development mode: Using mocked Bluetooth data");
     await delay(1000);
-    return mockDevicesData.SPBluetoothDataType as unknown as Array<Record<string, RawBluetoothDeviceData[]>>;
+    return mockDevicesData.SPBluetoothDataType[0] as unknown as SPBluetoothData;
   }
 
   // Use system_profiler to fetch Bluetooth info; AppleScript runs shell to avoid extra deps
@@ -41,26 +24,25 @@ async function getdBluetoothDevicesData(): Promise<Array<Record<string, RawBluet
     return do shell script "/usr/sbin/system_profiler SPBluetoothDataType -json"
   `);
 
-  return JSON.parse(rawBluetoothDeviceData).SPBluetoothDataType ?? [];
+  return JSON.parse(rawBluetoothDeviceData).SPBluetoothDataType[0] ?? {};
 }
 
 /**
- * Checks if a Bluetooth device is an AirPods device by examining its vendor ID, minor type, and name.
+ * Type guard that checks if a Bluetooth device is an AirPods device by examining its vendor ID, minor type, name, and address.
  *
  * @param device - The raw Bluetooth device data to check
- * @returns true if the device matches AirPods identification criteria
+ * @returns true if the device matches AirPods identification criteria and has a valid address
  * @internal
  */
-function isAirpodsDevice(device: RawBluetoothDeviceData): boolean {
+function isAirpodsDevice(device: BluetoothDeviceData): device is ValidBluetoothDeviceData {
   const deviceName = Object.keys(device)[0];
-  const deviceMinorType = device[deviceName].device_minorType;
-  const deviceVendorId = device[deviceName].device_vendorID;
+  const {
+    device_address: deviceAddress,
+    device_vendorID: deviceVendorId,
+    device_minorType: deviceMinorType,
+  } = device[deviceName];
 
-  if (deviceVendorId !== APPLE_VENDOR_ID) {
-    return false;
-  }
-
-  if (deviceMinorType !== HEADPHONES_MINOR_TYPE) {
+  if (!deviceAddress || deviceVendorId !== APPLE_VENDOR_ID || deviceMinorType !== HEADPHONES_MINOR_TYPE) {
     return false;
   }
 
@@ -81,36 +63,38 @@ function isAirpodsDevice(device: RawBluetoothDeviceData): boolean {
  * @returns Array of parsed AirPods data with battery levels
  * @internal
  */
-function parseAirpodsDevices(devices: RawBluetoothDeviceData[], isConnected: boolean): AirpodsData[] {
-  return devices
-    .filter((device: RawBluetoothDeviceData) => isAirpodsDevice(device))
-    .map((device: RawBluetoothDeviceData) => {
-      const name = Object.keys(device)[0];
-      const deviceData = device[name];
+function parseAirpodsDevices(devices: BluetoothDeviceData[], isConnected: boolean): AirpodsData[] {
+  return devices.filter(isAirpodsDevice).map((device): AirpodsData => {
+    const name = Object.keys(device)[0];
+    const deviceData = device[name];
 
-      const singleBatteryLevel = deviceData.device_batteryLevel ? parsePercent(deviceData.device_batteryLevel) : null;
+    const singleBatteryLevel = deviceData.device_batteryLevelMain
+      ? parsePercent(deviceData.device_batteryLevelMain)
+      : null;
 
-      let leftBatteryLevel = null;
-      let rightBatteryLevel = null;
-      let caseBatteryLevel = null;
-      if (!singleBatteryLevel) {
-        leftBatteryLevel = parsePercent(deviceData.device_batteryLevelLeft);
-        rightBatteryLevel = parsePercent(deviceData.device_batteryLevelRight);
-        caseBatteryLevel = parsePercent(deviceData.device_batteryLevelCase);
-      }
+    let leftBatteryLevel = null;
+    let rightBatteryLevel = null;
+    let caseBatteryLevel = null;
+    if (!singleBatteryLevel) {
+      leftBatteryLevel = deviceData.device_batteryLevelLeft ? parsePercent(deviceData.device_batteryLevelLeft) : null;
+      rightBatteryLevel = deviceData.device_batteryLevelRight
+        ? parsePercent(deviceData.device_batteryLevelRight)
+        : null;
+      caseBatteryLevel = deviceData.device_batteryLevelCase ? parsePercent(deviceData.device_batteryLevelCase) : null;
+    }
 
-      return {
-        name,
-        address: deviceData.device_address,
-        isConnected,
-        type: !deviceData.device_caseVersion ? "over-ear" : "in-ear",
-        batteryLevel: singleBatteryLevel || {
-          left: leftBatteryLevel,
-          right: rightBatteryLevel,
-          case: caseBatteryLevel,
-        },
-      };
-    });
+    return {
+      name,
+      address: deviceData.device_address,
+      isConnected,
+      type: !deviceData.device_caseVersion ? "over-ear" : "in-ear",
+      batteryLevel: singleBatteryLevel || {
+        left: leftBatteryLevel,
+        right: rightBatteryLevel,
+        case: caseBatteryLevel,
+      },
+    };
+  });
 }
 
 /**
@@ -120,7 +104,7 @@ function parseAirpodsDevices(devices: RawBluetoothDeviceData[], isConnected: boo
  */
 export async function getConnectedAirpodsData(): Promise<AirpodsData[]> {
   const devicesData = await getdBluetoothDevicesData();
-  const connectedDevices = devicesData[0].device_connected ?? [];
+  const connectedDevices = devicesData.device_connected ?? [];
   return parseAirpodsDevices(connectedDevices, true);
 }
 
@@ -131,8 +115,8 @@ export async function getConnectedAirpodsData(): Promise<AirpodsData[]> {
  */
 export async function getAvailableAirpodsData(): Promise<AirpodsData[]> {
   const devicesData = await getdBluetoothDevicesData();
-  const connectedDevices = devicesData[0].device_connected ?? [];
-  const notConnectedDevices = devicesData[0].device_not_connected ?? [];
+  const connectedDevices = devicesData.device_connected ?? [];
+  const notConnectedDevices = devicesData.device_not_connected ?? [];
 
   const connectedAirpods = parseAirpodsDevices(connectedDevices, true);
   const notConnectedAirpods = parseAirpodsDevices(notConnectedDevices, false);

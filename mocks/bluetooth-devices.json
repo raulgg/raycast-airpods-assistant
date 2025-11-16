@@ -34,7 +34,7 @@
         {
           "AirPods Max": {
             "device_address": "AA:BB:CC:DD:EE:02",
-            "device_batteryLevel": "78%",
+            "device_batteryLevelMain": "78%",
             "device_firmwareVersion": "6A321",
             "device_minorType": "Headphones",
             "device_productID": "0x200A",
